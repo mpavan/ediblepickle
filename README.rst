@@ -108,6 +108,7 @@ To install ediblepickle, simply:
     $ pip install ediblepickle
 
 Or:
+
 .. code-block:: bash
 
     $ easy_install ediblepickle
