@@ -3,7 +3,7 @@ Checkpoint
 
 
 .. image:: https://travis-ci.org/mpavan/ediblepickle.png?branch=master
-        :target: https://travis-ci.org/ediblepickle
+        :target: https://travis-ci.org/mpavan/ediblepickle
 
 ediblepickle is an Apache v 2.0 licensed checkpointing :target: https://en.wikipedia.org/wiki/Application_checkpointing utility.
 
