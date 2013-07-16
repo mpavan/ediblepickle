@@ -13,7 +13,7 @@ SLEEP_TIME = 5
 
 def save_ints(integers, f):
     for i in integers:
-        f.write(str(i))
+        f.write('%d' %i)
         f.write('\n')
 
 
