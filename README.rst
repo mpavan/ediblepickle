@@ -105,6 +105,159 @@ save matrices or csv files to debug:
 
     print time_taken
 
+Key Specification
+------------------
+The key to cache the function output can be specified in 4 different ways.
+
+1. **a python string**: A key specified using a python str object is taken as is. The output of the function decorated is saved
+   in a file with that file name.
+
+2. **string.Template object**: The args and kwargs sent to the function are used to generate a name using the string.Template object.
+   For instance, for a function f(a, b, arg3=10, arg4=9), (a, b) are the arguments and (arg3, arg4) are the keyword arguments.
+   Non-keyword arguments are represented using their position. That is {0} gets converted to the value of the parameter a. 
+   Keyword arguments are represented using the standard Template notation. For instance, ${arg3} will take the value of arg3.
+
+   For instance: 
+      
+.. code-block:: python
+      
+      @checkpoint(key=string.Template('{0}_bvalue_{1}_${arg3}_${arg4}_output.txt'))
+      def f(a, b, arg3=8, arg4='subtract'):
+         # do something with the args
+         result = (a - b)/arg3
+         return result
+.. end
+
+   On a call: f(3, 4, arg3=19, arg4='add')
+   Generates: '3_bvalue_4_19_add_output.txt'
+
+3. **lambda function**: Any lambda function of the form lambda args, kwargs: ... is suitable as a key generator. The non-keyword arguments
+   are sent in as a tuple in place of 'args', and the keyword arguments are sent as a dictionary in the place of 'kwargs'. You may use
+   them to write any complex function to generate and return a key name.
+
+   For instance either of the two belowmentioned options, on a call: f(3, 4, arg3=19, arg4='add'), generates: '3_bvalue_4_19_add_output.txt'
+
+.. code-block:: python
+      
+      @checkpoint(key= lambda args, kwargs: '_'.join(map(str, [args[0], 'bvalue', args[1], kwargs['arg3'], kwargs['arg4'], 'output.txt')))
+      def f(a, b, arg3=8, arg4='subtract'):
+         # do something with the args
+         result = (a - b)/arg3
+         return result
+.. end 
+
+.. code-block:: python
+
+      @checkpoint(key= lambda args, kwargs string.Template('{0}_bvalue_{1}_${arg3}_${arg4}_output.txt').substitute(kwargs).format(args))
+      def f(a, b, arg3=8, arg4='subtract'):
+         # do something with the args
+         result = (a - b)/arg3
+         return result
+.. end
+
+
+4. **function object**: This is similar to the lambda object, but key can take in a named function as well. The function that returns a key should
+   accept arguments of the form namer(args, kwargs), where args is a tuple containing all the non-keyword arguments, and kwargs is a dictionary
+   containing the keywords and their values.  For a call: f(3, 4, arg3=19, arg4='add'), this generates the key name to be  '3_bvalue_4_19_add_output.txt'
+
+   The advantage of this approach is that if you are dealing with arguments that cannot be directly used in the template, you can convert 
+   them to something that is addable to a name.
+
+.. code-block:: python
+
+      def key_namer(args, kwargs):
+          return '_'.join(map(str, [args[0], 'bvalue', args[1], kwargs['arg3'], kwargs['arg4'], 'output.txt'))
+
+      @checkpoint(key=key_namer)
+      def f(a, b, arg3=8, arg4='subtract'):
+         # do something with the args
+         result = (a - b)/arg3
+         return result
+
+
+**Imporatant Note**: When you checkpoint a function, remember to send non-keyword args as non-keyword and key-word args as keyword based on your
+template specification. Although the third argument arg3 can be sent without saying arg3=19, the template will not pick up arg3 since we
+rely on the keyword name matching to that in the template.
+
+
+Picklers/Unpicklers
+--------------------
+
+A pickler must have the following definition:
+
+.. code-block:: python
+
+   def my_pickler(f, object):
+       # f is an open file descriptor
+       save_to_f(object)
+       pass
+
+
+An unpickler must have the following definition:
+
+
+.. code-block:: python
+
+   def my_unpickler(f):
+       # f is an open file descriptor
+       objec = load_object(f)
+       return object
+
+These can be wrappers around numpy.loadtxt, pandas.DataFrame.to_csv,
+pandas.DataFrame.from_csv, and many more such serializing functions. Using them
+with those utility functions to load/save numpy/pandas objects is one of the
+most important use cases for expensive numerical computations.
+
+
+The refresh Option
+-------------------
+The keyword argument 'refresh' ignores the cache if it is set to True and recomputes the function. In a process with multiple steps, this can be used to
+refresh only those things that need to be refreshed. While you may specify True/False directly, a more convenient approach could be to collect all the
+refresh values for different functions into a single file, and set them there.
+
+For instance, if I have a process that runs on input x, as a sequence of steps, that give you y1 = f1(x1), y2 = f2(y1), and yn = fn(yn-1). The checkpoint
+decoration could be of the form:
+
+.. code-block:: python
+
+      import defs
+
+      @checkpoint(key=key_namer, refresh=defs.TASK1_REFRESH)
+      def f1(x):
+         y1 = do_something(x)
+         return y1 
+
+
+      @checkpoint(key=key_namer, refresh=defs.TASK2_REFRESH)
+      def f2(y1):
+         y2 = do_something(y1)
+         return y2 
+
+
+      @checkpoint(key=key_namer, refresh=defs.TASK3_REFRESH)
+      def f3(y2):
+         y3 = do_something(y2)
+         return y3 
+
+.. end
+
+These functions can now be independently controlled using these definitions elsewhere, say in defs.py, or from main.py:
+
+.. code-block:: python
+
+   # defs.py
+   import os
+
+   TASK1_REFRESH = True
+   TASK2_REFRESH = os.environ['TASK2_REFRESH_OPTION'] # This can be set from environment
+   TASK3_REFRESH = True
+
+   # main.py
+   if sys.argv[1] == 'n1':
+      defs.TASK1_REFRESH = False
+   if sys.argv[1] == 'y3':
+      defs.TASK1_REFRESH = True
+
 
 Contribute
 ----------
