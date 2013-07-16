@@ -37,6 +37,7 @@ settings.update(
     classifiers=CLASSIFIERS,
     keywords="decorator, checkpoint, intermediate results, serialization, deserialization",
     py_modules=['ediblepickle'],
+    tests_require=["nose"],
     test_suite="checkpoint_tests",
 )
 

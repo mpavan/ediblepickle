@@ -24,17 +24,17 @@ def load_ints(f):
 # SECTION 1 : TEMPLATE KEY TESTING
 
 # Create a scenario, where the checkpoint is first created. This is achieved by setting refresh=True.
-checkpoint(key=Template('n{0}_start${start}_stride${stride}.txt'), pickler=load_ints, unpickler=save_ints, refresh=True)
+@checkpoint(key=Template('n{0}_start${start}_stride${stride}.txt'), pickler=save_ints, unpickler=load_ints, refresh=True)
 def expensive_function_creates_checkpoint(n, start=0, stride=1):
     sleep(SLEEP_TIME)
     return range(start, n, stride)
 
 
-# Create a scenario, where the checkpoint is loaded after creation. This is not truly achievable since the checkpoint
+# Create a scenario, where the checkpoint is loaded after creation. This is not truly achievable since the @checkpoint
 # will be created if it doesn't exist. We are relying on sequence of tests here. However, refresh must be set to False,
 # since we don't want to recreate the file if it exists. The first test creates it and the
 # timed-second test uses this function to load it.
-checkpoint(key=Template('n{0}_start${start}_stride${stride}.txt'), pickler=load_ints, unpickler=save_ints,
+@checkpoint(key=Template('n{0}_start${start}_stride${stride}.txt'), pickler=save_ints, unpickler=load_ints,
            refresh=False)
 def expensive_function_loads_checkpoint(n, start=0, stride=1):
     sleep(5)
@@ -72,15 +72,15 @@ def test_template_key_checkpoint_loading():
 # SECTION 2: STRING KEY TESTING
 
 
-# Create a scenario, where the checkpoint is loaded after creation; use the string filename.
-checkpoint(key='test_file.txt', pickler=load_ints, unpickler=save_ints, refresh=False)
+# Create a scenario, where the @checkpoint is loaded after creation; use the string filename.
+@checkpoint(key='test_file.txt', pickler=save_ints, unpickler=load_ints, refresh=False)
 def expensive_function_loads_checkpoint_str(n, start=0, stride=1):
     sleep(SLEEP_TIME)
     return range(start, n, stride)
 
 
-# Create a scenario, where the checkpoint is first created from 'test_file.txt'.
-checkpoint(key='test_file.txt', pickler=load_ints, unpickler=save_ints, refresh=True)
+# Create a scenario, where the @checkpoint is first created from 'test_file.txt'.
+@checkpoint(key='test_file.txt', pickler=save_ints, unpickler=load_ints, refresh=True)
 def expensive_function_creates_checkpoint_str(n, start=0, stride=1):
     sleep(SLEEP_TIME)
     return range(start, n, stride)
@@ -114,17 +114,17 @@ def test_string_key_checkpoint_loading():
 
 # SECTION 3: LAMBDA KEY TESTING
 
-# Create a scenario, where the checkpoint is loaded after creation; use the lambda filename.
-checkpoint(key=lambda args, kwargs: 'lambda_n%d_start%d_stride%d.txt' % (args[0], kwargs['start'], kwargs['stride']),
-           pickler=load_ints, unpickler=save_ints, refresh=False)
+# Create a scenario, where the @checkpoint is loaded after creation; use the lambda filename.
+@checkpoint(key=lambda args, kwargs: 'lambda_n%d_start%d_stride%d.txt' % (args[0], kwargs['start'], kwargs['stride']),
+           pickler=save_ints, unpickler=load_ints, refresh=False)
 def expensive_function_loads_checkpoint_lambda(n, start=0, stride=1):
     sleep(SLEEP_TIME)
     return range(start, n, stride)
 
 
-# Create a scenario, where the checkpoint is first created from 'test_file.txt'.
-checkpoint(key=lambda args, kwargs: 'lambda_n%d_start%d_stride%d.txt' % (args[0], kwargs['start'], kwargs['stride']),
-           pickler=load_ints, unpickler=save_ints, refresh=False)
+# Create a scenario, where the @checkpoint is first created from 'test_file.txt'.
+@checkpoint(key=lambda args, kwargs: 'lambda_n%d_start%d_stride%d.txt' % (args[0], kwargs['start'], kwargs['stride']),
+           pickler=save_ints, unpickler=load_ints, refresh=False)
 def expensive_function_creates_checkpoint_lambda(n, start=0, stride=1):
     sleep(SLEEP_TIME)
     return range(start, n, stride)
@@ -166,15 +166,15 @@ def key_maker(args, kwargs): # remember no *s here.
     return 'key_maker_n%d_start%d_stride%d.txt' % (args[0], kwargs['start'], kwargs['stride'])
 
 
-# Create a scenario, where the checkpoint is loaded after creation; use the lambda filename.
-checkpoint(key=key_maker, pickler=load_ints, unpickler=save_ints, refresh=False)
+# Create a scenario, where the @checkpoint is loaded after creation; use the lambda filename.
+@checkpoint(key=key_maker, pickler=save_ints, unpickler=load_ints, refresh=False)
 def expensive_function_loads_checkpoint_key_maker(n, start=0, stride=1):
     sleep(SLEEP_TIME)
     return range(start, n, stride)
 
 
-# Create a scenario, where the checkpoint is first created from 'test_file.txt'.
-checkpoint(key=key_maker, pickler=load_ints, unpickler=save_ints, refresh=False)
+# Create a scenario, where the @checkpoint is first created from 'test_file.txt'.
+@checkpoint(key=key_maker, pickler=save_ints, unpickler=load_ints, refresh=False)
 def expensive_function_creates_checkpoint_key_maker(n, start=0, stride=1):
     sleep(SLEEP_TIME)
     return range(start, n, stride)
