@@ -22,13 +22,12 @@ CLASSIFIERS = [
     'Programming Language :: Python',
     'Programming Language :: Python :: 2.6',
     'Programming Language :: Python :: 2.7',
-    'Programming Language :: Python :: 3.2',
     'Topic :: Utilities',
 ]
 
 settings.update(
     name='ediblepickle',
-    version='1.0',
+    version='1.0.2',
     description='Checkpoint',
     long_description=open('README.rst').read(),
     author='Pavan Mallapragada',
