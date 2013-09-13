@@ -263,7 +263,6 @@ These functions can now be independently controlled using these definitions else
    if sys.argv[1] == 'task3':
       defs.TASK1_REFRESH['task3'] = True
 
-..end
 
 **Caveat 1**
 
@@ -271,9 +270,9 @@ When collecting all refresh options in a python module (say defs.py), when using
 and if there is a need to change them later, one needs to be cautious:
 
 .. code-block:: python
+
    import defs          # NOT from defs import REFRESH
    defs.REFRESH = True  # NOT REFRESH = True
-..end
 
 In python modules are objects, and doing `import defs` will give a reference to the module, and the variable REFRESH
 can be changed in the module using `defs.REFRESH = True`. However, `from defs import REFRESH` gives us a reference
@@ -284,11 +283,11 @@ to the immutable, a local copy of which is made when changed, without altering t
 When changing the refresh option through command line options, or the like, it is better to use a lambda function as
 
 .. code-block:: python
+
    # module.py
    @checkpoint(..., refresh=lambda: REFRESH)
    def myfunc():
        pass
-..end
 
 Since the default values are evaluated at the definition time and are bound to the argument, using a lambda,
 (or in general, something mutable) we ensure that we are taking the current value of REFRESH.
