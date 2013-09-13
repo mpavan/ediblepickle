@@ -266,8 +266,8 @@ These functions can now be independently controlled using these definitions else
 
 **Caveat 1**
 
-When collecting all refresh options in a python module (say defs.py), when using immutable variables like REFRESH = True,
-and if there is a need to change them later, one needs to be cautious:
+When collecting refresh options in a python module (say defs.py) using immutable variables like REFRESH = True,
+one needs to be cautious if there is a need to change them during runtime:
 
 .. code-block:: python
 
@@ -285,12 +285,13 @@ When changing the refresh option through command line options, or the like, it i
 .. code-block:: python
 
    # module.py
-   @checkpoint(..., refresh=lambda: REFRESH)
+   import defs
+   @checkpoint(..., refresh=lambda: defs.REFRESH)
    def myfunc():
        pass
 
 Since the default values are evaluated at the definition time and are bound to the argument, using a lambda,
-(or in general, something mutable) we ensure that we are taking the current value of REFRESH.
+(or something mutable) we ensure that we are taking the current value of REFRESH.
 
 Contribute
 ----------
