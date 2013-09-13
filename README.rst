@@ -215,7 +215,10 @@ The keyword argument 'refresh' ignores the cache if it is set to True and recomp
 refresh only those things that need to be refreshed. While you may specify True/False directly, a more convenient approach could be to collect all the
 refresh values for different functions into a single file, and set them there.
 
-There are a few caveats to this approach however, which will be discussed after the example below.
+The refresh can be passed as a boolean option, or as a function.
+
+When collecting refresh values together for better managing when and which functions to refresh, one needs to use the
+function argument for refresh for several reasons explained below.
 
 For instance, if I have a process that runs on input x, as a sequence of steps, that give you y1 = f1(x1), y2 = f2(y1), and yn = fn(yn-1). The checkpoint
 decoration could be of the form:
