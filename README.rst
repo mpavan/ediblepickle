@@ -215,6 +215,8 @@ The keyword argument 'refresh' ignores the cache if it is set to True and recomp
 refresh only those things that need to be refreshed. While you may specify True/False directly, a more convenient approach could be to collect all the
 refresh values for different functions into a single file, and set them there.
 
+There are a few caveats to this approach however, which will be discussed after the example below.
+
 For instance, if I have a process that runs on input x, as a sequence of steps, that give you y1 = f1(x1), y2 = f2(y1), and yn = fn(yn-1). The checkpoint
 decoration could be of the form:
 
@@ -223,8 +225,8 @@ decoration could be of the form:
       import defs
 
       @checkpoint(key=key_namer, refresh=defs.TASK1_REFRESH)
-      def f1(x):
-         y1 = do_something(x)
+      def f1(x1):
+         y1 = do_something(x1)
          return y1 
 
 
@@ -248,16 +250,48 @@ These functions can now be independently controlled using these definitions else
    # defs.py
    import os
 
-   TASK1_REFRESH = True
-   TASK2_REFRESH = os.environ['TASK2_REFRESH_OPTION'] # This can be set from environment
-   TASK3_REFRESH = True
+   # Caveat: defs.py should contain a mutable object like a dict or a list.
+   refresh_dict{'task1'} = True
+   refresh_dict{'task2'} = os.environ['TASK2_REFRESH_OPTION']
+   refresh_dict{'task3'} = True
+
 
    # main.py
-   if sys.argv[1] == 'n1':
-      defs.TASK1_REFRESH = False
-   if sys.argv[1] == 'y3':
-      defs.TASK1_REFRESH = True
+   import defs
+   if sys.argv[1] == 'task1':
+      defs.refresh_dict['task1'] = False
+   if sys.argv[1] == 'task3':
+      defs.TASK1_REFRESH['task3'] = True
 
+..end
+
+**Caveat 1**
+
+When collecting all refresh options in a python module (say defs.py), when using immutable variables like REFRESH = True,
+and if there is a need to change them later, one needs to be cautious:
+
+.. code-block:: python
+   import defs          # NOT from defs import REFRESH
+   defs.REFRESH = True  # NOT REFRESH = True
+..end
+
+In python modules are objects, and doing `import defs` will give a reference to the module, and the variable REFRESH
+can be changed in the module using `defs.REFRESH = True`. However, `from defs import REFRESH` gives us a reference
+to the immutable, a local copy of which is made when changed, without altering the module variable.
+
+**Caveat 2**
+
+When changing the refresh option through command line options, or the like, it is better to use a lambda function as
+
+.. code-block:: python
+   # module.py
+   @checkpoint(..., refresh=lambda: REFRESH)
+   def myfunc():
+       pass
+..end
+
+Since the default values are evaluated at the definition time and are bound to the argument, using a lambda,
+(or in general, something mutable) we ensure that we are taking the current value of REFRESH.
 
 Contribute
 ----------
