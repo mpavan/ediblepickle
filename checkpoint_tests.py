@@ -208,3 +208,44 @@ def test_key_maker_key_checkpoint_loading():
     result = expensive_function_loads_checkpoint_key_maker(100, start=10, stride=2)
     assert (result == range(10, 100, 2))  # Make sure whats loaded is what should be loaded.
 
+
+# SECTION 5: REFRESH using lambda testing
+
+# Create a scenario, where the @checkpoint is loaded after creation; use the string filename;refresh is a lambda object
+@checkpoint(key='test_file.txt', pickler=save_ints, unpickler=load_ints, refresh=lambda: 0)
+def expensive_function_loads_checkpoint_str_refresh_lambda(n, start=0, stride=1):
+    sleep(SLEEP_TIME)
+    return range(start, n, stride)
+
+
+# Create a scenario, where the @checkpoint is first created from 'test_file.txt'.
+@checkpoint(key='test_file.txt', pickler=save_ints, unpickler=load_ints, refresh=lambda: 1)
+def expensive_function_creates_checkpoint_str_refresh_lambda(n, start=0, stride=1):
+    sleep(SLEEP_TIME)
+    return range(start, n, stride)
+
+def test_string_key_checkpoint_creation_refresh_lambda():
+    key = 'test_file.txt'
+    out_file = os.path.join(gettempdir(), key)
+
+    # make sure you delete the file first
+    try:
+        os.remove(out_file)
+        assert (not os.path.exists(out_file))
+    except OSError as e:  # No such file or directory
+        logging.info('File not found or deleted. Good. Starting the test...')  # we are good. ignore the exception.
+
+    # call the function that creates the file
+    result = expensive_function_creates_checkpoint_str_refresh_lambda(100, start=10, stride=2)
+
+    logging.info(out_file)
+    # make sure the file is created.
+    assert (os.path.exists(out_file))
+
+
+# this test must run much lesser than 5 seconds, although there is a sleep in the loads function
+# cuz we are just loading. Lets time it to 1 second.
+@timed(1)
+def test_string_key_checkpoint_loading_refresh_lambda():
+    result = expensive_function_loads_checkpoint_str_refresh_lambda(100, start=10, stride=2)
+    assert (result == range(10, 100, 2))  # Make sure whats loaded is what should be loaded.

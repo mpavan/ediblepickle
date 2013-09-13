@@ -19,8 +19,25 @@ import logging
 from string import Template
 from tempfile import gettempdir
 import types
+import time
 
 __author__ = 'pavan.mnssk@gmail.com'
+
+
+def _modification_time(cache_file):
+
+    creation_time = os.path.getctime(cache_file)
+    modification_time = os.path.getmtime(cache_file)
+
+    print '    creation time', creation_time
+    print 'modification time', modification_time
+
+    diff = creation_time - modification_time
+
+    print diff/60/60/24
+
+
+print _modification_time('/Users/pavan/swaroop.txt')
 
 
 def checkpoint(key=0, unpickler=pickle.load, pickler=pickle.dump, work_dir=gettempdir(), refresh=False):
@@ -84,7 +101,7 @@ def checkpoint(key=0, unpickler=pickle.load, pickler=pickle.dump, work_dir=gette
 
     :param work_dir: The location where the checkpoint files are stored.
 
-    :param refresh: If enabled, this will not skip, effectively disabling the
+    :param do_refresh: If enabled, this will not skip, effectively disabling the
     decoration @checkpoint.
 
     REFRESHING: One of the intended ways to use the refresh feature is as follows:
@@ -130,7 +147,13 @@ def checkpoint(key=0, unpickler=pickle.load, pickler=pickle.dump, work_dir=gette
             logging.info('checkpoint@ %s' % save_file)
 
             # cache_file doesn't exist, run the function and save output in checkpoint.
-            if refresh or not os.path.exists(path=save_file):  # Otherwise compute it save it and return it.
+
+            if isinstance(refresh, types.FunctionType):
+                do_refresh = refresh()
+            else:
+                do_refresh = refresh
+
+            if do_refresh or not os.path.exists(path=save_file):  # Otherwise compute it save it and return it.
                 # If the program fails, don't checkpoint.
                 try:
                     out = func(*args, **kwargs)
