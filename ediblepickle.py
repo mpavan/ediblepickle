@@ -23,21 +23,19 @@ import time
 
 __author__ = 'pavan.mnssk@gmail.com'
 
+# Unfinished feature.
+# def _modification_time(cache_file):
+#
+#     creation_time = os.path.getctime(cache_file)
+#     modification_time = os.path.getmtime(cache_file)
+#
+#     print '    creation time', creation_time
+#     print 'modification time', modification_time
+#
+#     diff = creation_time - modification_time
+#
+#     print diff/60/60/24
 
-def _modification_time(cache_file):
-
-    creation_time = os.path.getctime(cache_file)
-    modification_time = os.path.getmtime(cache_file)
-
-    print '    creation time', creation_time
-    print 'modification time', modification_time
-
-    diff = creation_time - modification_time
-
-    print diff/60/60/24
-
-
-print _modification_time('/Users/pavan/swaroop.txt')
 
 
 def checkpoint(key=0, unpickler=pickle.load, pickler=pickle.dump, work_dir=gettempdir(), refresh=False):
