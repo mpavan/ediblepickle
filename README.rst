@@ -254,9 +254,10 @@ These functions can now be independently controlled using these definitions else
    import os
 
    # Caveat: defs.py should contain a mutable object like a dict or a list.
-   refresh_dict{'task1'} = True
-   refresh_dict{'task2'} = os.environ['TASK2_REFRESH_OPTION']
-   refresh_dict{'task3'} = True
+   refresh_dict = {}
+   refresh_dict['task1'] = True
+   refresh_dict['task2'] = os.environ['TASK2_REFRESH_OPTION']
+   refresh_dict['task3'] = True
 
 
    # main.py
